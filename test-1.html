@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2027 연말정산 예상 계산기</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; }
+        .app-container { max-width: 650px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { font-size: 1.5rem; text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { font-size: 1.1rem; color: #fff; background-color: #34495e; padding: 8px 12px; border-radius: 6px; margin-top: 25px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.95rem; color: #555; }
+        .desc { font-size: 0.8rem; color: #e74c3c; margin-bottom: 5px; display: block; line-height: 1.3; }
+        input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        .checkbox-group { display: flex; align-items: center; margin-top: 10px; margin-bottom: 20px; }
+        .checkbox-group input { width: 20px; height: 20px; margin-right: 10px; }
+        button { width: 100%; padding: 15px; font-size: 1.1rem; font-weight: bold; color: #fff; background-color: #3498db; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #2980b9; }
+        .result-box { margin-top: 25px; padding: 20px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #ced4da; display: none; }
+        .result-title { font-weight: bold; font-size: 1.2rem; color: #2c3e50; border-bottom: 2px solid #bdc3c7; padding-bottom: 8px; margin-bottom: 15px; }
+        .item-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; border-bottom: 1px dashed #e0e0e0; padding-bottom: 4px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; text-align: center; }
+        th, td { border: 1px solid #e0e0e0; padding: 10px 5px; }
+        th { background-color: #ecf0f1; font-weight: bold; color: #2c3e50; }
+        td:first-child { text-align: left; font-weight: bold; background-color: #fdfdfd; }
+        .highlight-req { color: #d35400; font-weight: bold; font-size: 0.85rem; }
+        
+        .final-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.3rem; margin-top: 25px; padding: 15px; border-radius: 8px; }
+        .refund { background-color: #e8f6f3; color: #16a085; border: 2px solid #16a085; }
+        .pay { background-color: #fdedec; color: #c0392b; border: 2px solid #c0392b; }
+        
+        .guide-box { margin-top: 30px; padding: 15px; background-color: #f4f6f7; border-radius: 8px; border-left: 4px solid #3498db; font-size: 0.9rem; line-height: 1.6; color: #2c3e50; }
+        .guide-title { font-weight: bold; font-size: 1.05rem; color: #2980b9; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h1>💰 2027 연말정산 예상 계산기</h1>
+    <p style="text-align:center; font-size:0.85rem; color:#7f8c8d;">모든 금액은 <strong>'만 원'</strong> 단위로 입력해 주세요.</p>
+
+    <div class="input-group">
+        <label>연봉 (총급여액)</label>
+        <input type="number" id="salary" placeholder="예: 4500">
+    </div>
+    <div class="input-group" style="background-color: #eaf2f8; padding: 10px; border-radius: 6px;">
+        <label style="color: #2980b9;">올해 이미 납부한 소득세 총액 (기납부세액)</label>
+        <span class="desc">*급여명세서의 '소득세' 누적액 (지방소득세 제외)</span>
+        <input type="number" id="prepaid" placeholder="예: 150">
+    </div>
+    <div class="input-group"><label>부양가족 수 (본인 제외)</label><input type="number" id="dependents" placeholder="0"></div>
+    <div class="input-group"><label>8세 이상 자녀(손자녀) 수</label><input type="number" id="children" placeholder="0"></div>
+    <div class="input-group"><label>올해 출산/입양한 자녀 수</label><input type="number" id="born" placeholder="0"></div>
+
+    <h2>💳 소비 및 저축 (소득공제)</h2>
+    <div class="input-group"><label>현재 신용카드 사용액</label><input type="number" id="card" placeholder="0"></div>
+    <div class="input-group"><label>현재 현금/체크카드 사용액</label><input type="number" id="cash" placeholder="0"></div>
+    <div class="input-group"><label>전통시장/대중교통/문화비</label><input type="number" id="extra_spend" placeholder="0"></div>
+    <div class="input-group"><label>주택청약 납입액</label><input type="number" id="housing" placeholder="0"></div>
+
+    <h2>🏦 연금 및 주거 (세액공제)</h2>
+    <div class="input-group"><label>연금저축 납입액</label><input type="number" id="pension" placeholder="0"></div>
+    <div class="input-group"><label>IRP 납입액</label><input type="number" id="irp" placeholder="0"></div>
+    <div class="input-group"><label>월세액 (연간 지출 총액)</label><input type="number" id="rent" placeholder="0"></div>
+
+    <h2>🏥 의료/교육/기부 (특별세액공제)</h2>
+    <div class="input-group"><label>보장성 보험료</label><input type="number" id="insurance" placeholder="0"></div>
+    <div class="input-group"><label>일반 의료비 지출액</label><input type="number" id="medical" placeholder="0"></div>
+    <div class="input-group"><label>난임시술비</label><input type="number" id="medical_nanim" placeholder="0"></div>
+    <div class="input-group"><label>초,중,고 자녀 교육비</label><input type="number" id="edu_school" placeholder="0"></div>
+    <div class="input-group"><label>대학교 자녀 교육비</label><input type="number" id="edu_uni" placeholder="0"></div>
+    <div class="input-group"><label>고향사랑기부금</label><input type="number" id="donation" placeholder="0"></div>
+    
+    <div class="checkbox-group">
+        <input type="checkbox" id="marriage">
+        <label for="marriage" style="margin-bottom:0;">2024년 이후 혼인신고 완료 (결혼세액공제 인당 50만)</label>
+    </div>
+
+    <button onclick="calculateTax()">최종 환급액 및 한도 분석하기</button>
+
+    <div id="resultArea" class="result-box"></div>
+</div>
+
+<script>
+    function getVal(id) { return Number(document.getElementById(id).value) || 0; }
+
+    function calculateTax() {
+        const salary = getVal('salary');
+        if(salary === 0) { alert("연봉을 정확히 입력해 주세요."); return; }
+
+        const prepaid = getVal('prepaid'); 
+        const dependents = getVal('dependents');
+        const children = getVal('children');
+        const born = getVal('born');
+        const card = getVal('card');
+        const cash = getVal('cash');
+        const extraSpend = getVal('extra_spend');
+        const housing = getVal('housing');
+        const pension = getVal('pension');
+        const irp = getVal('irp');
+        const rent = getVal('rent');
+        const insurance = getVal('insurance');
+        const medical = getVal('medical');
+        const medicalNanim = getVal('medical_nanim');
+        const eduSchool = getVal('edu_school');
+        const eduUni = getVal('edu_uni');
+        const donation = getVal('donation');
+        const marriage = document.getElementById('marriage').checked;
+
+        /* --- 1. 소득공제 및 과세표준 산출 --- */
+        let earnedIncomeDeduct = 0; 
+        if(salary <= 500) earnedIncomeDeduct = salary * 0.7;
+        else if(salary <= 1500) earnedIncomeDeduct = 350 + (salary - 500) * 0.4;
+        else if(salary <= 4500) earnedIncomeDeduct = 750 + (salary - 1500) * 0.15;
+        else if(salary <= 10000) earnedIncomeDeduct = 1200 + (salary - 4500) * 0.05;
+        else earnedIncomeDeduct = Math.min(2000, 1475 + (salary - 10000) * 0.02);
+
+        let deductionAmount = 150 + ((dependents + children) * 150); 
+        
+        const cardThreshold = salary * 0.25;
+        const totalCardSpend = card + cash + extraSpend;
+        if(totalCardSpend > cardThreshold) {
+            const overAmount = totalCardSpend - cardThreshold;
+            const maxLimit = salary <= 7000 ? 300 : 250; 
+            deductionAmount += Math.min(overAmount * 0.2, maxLimit); 
+        }
+        deductionAmount += Math.min(housing, 300) * 0.4; 
+
+        let taxBase = salary - earnedIncomeDeduct - deductionAmount;
+        if (taxBase < 0) taxBase = 0;
+
+        /* --- 2. 산출세액 (기본 세금) 계산 --- */
+        let calcTax = 0;
+        if(taxBase <= 1400) calcTax = taxBase * 0.06;
+        else if(taxBase <= 5000) calcTax = 84 + (taxBase - 1400) * 0.15;
+        else if(taxBase <= 8800) calcTax = 624 + (taxBase - 5000) * 0.24;
+        else if(taxBase <= 15000) calcTax = 1536 + (taxBase - 8800) * 0.35;
+        else if(taxBase <= 30000) calcTax = 3706 + (taxBase - 15000) * 0.38;
+        else calcTax = 9406 + (taxBase - 30000) * 0.40;
+
+        /* --- 3. 세액공제 항목 계산 --- */
+        let totalTaxCredit = 0;
+        let tableRows = "";
+
+        let basicCredit = 0;
+        if(calcTax <= 130) basicCredit = calcTax * 0.55;
+        else basicCredit = 71.5 + (calcTax - 130) * 0.30;
+        totalTaxCredit += Math.min(basicCredit, 66); 
+
+        let childCredit = 0;
+        if(children === 1) childCredit += 25;
+        else if(children === 2) childCredit += 55;
+        else if(children >= 3) childCredit += 55 + ((children - 2) * 40);
+        if(born === 1) childCredit += 30;
+        else if(born === 2) childCredit += 50;
+        else if(born >= 3) childCredit += 70;
+        totalTaxCredit += childCredit;
+
+        const pensionRate = salary <= 5500 ? 0.15 : 0.12;
+        const pensionCurrentSpend = Math.min(pension + irp, 900);
+        const pensionCredit = Math.floor(pensionCurrentSpend * pensionRate);
+        totalTaxCredit += pensionCredit;
+        tableRows += `<tr><td>연금계좌</td><td>${pensionCredit}만</td><td>${Math.floor(900 * pensionRate)}만</td><td class="highlight-req">${900 - pensionCurrentSpend > 0 ? `${900 - pensionCurrentSpend}만 납입` : '도달'}</td></tr>`;
+
+        let rentRate = salary <= 5500 ? 0.17 : (salary <= 8000 ? 0.15 : 0);
+        if (rentRate > 0) {
+            const rentCurrentSpend = Math.min(rent, 1000);
+            const rentCredit = Math.floor(rentCurrentSpend * rentRate);
+            totalTaxCredit += rentCredit;
+            tableRows += `<tr><td>월세액</td><td>${rentCredit}만</td><td>${Math.floor(1000 * rentRate)}만</td><td class="highlight-req">${1000 - rentCurrentSpend > 0 ? `${1000 - rentCurrentSpend}만 지출` : '도달'}</td></tr>`;
+        }
+
+        const insCurrentSpend = Math.min(insurance, 100);
+        const insCredit = Math.floor(insCurrentSpend * 0.12);
+        totalTaxCredit += insCredit;
+        tableRows += `<tr><td>보장성보험</td><td>${insCredit}만</td><td>12만</td><td class="highlight-req">${100 - insCurrentSpend > 0 ? `${100 - insCurrentSpend}만 납입` : '도달'}</td></tr>`;
+
+        const medThreshold = salary * 0.03;
+        const eligibleMed = Math.max(0, medical - medThreshold);
+        const medCredit = Math.floor(Math.min(eligibleMed, 700) * 0.15) + Math.floor(medicalNanim * 0.30);
+        totalTaxCredit += medCredit;
+        tableRows += `<tr><td>의료비</td><td>${medCredit}만</td><td>105만+α</td><td class="highlight-req">${medical < medThreshold ? `문턱까지 ${(medThreshold - medical).toFixed(1)}만` : '공제중'}</td></tr>`;
+
+        const donCurrentSpend = Math.min(donation, 10);
+        const donCredit = Math.floor(donCurrentSpend * 1.0);
+        let donExtraCredit = donation > 10 ? Math.floor((donation - 10) * 0.15) : 0;
+        totalTaxCredit += (donCredit + donExtraCredit);
+        tableRows += `<tr><td>고향사랑</td><td>${donCredit + donExtraCredit}만</td><td>10만(100%)</td><td class="highlight-req">${10 - donCurrentSpend > 0 ? `${10 - donCurrentSpend}만 기부` : '최적화'}</td></tr>`;
+
+        const eduCredit = Math.floor(Math.min(eduSchool, 300) * 0.15) + Math.floor(Math.min(eduUni, 900) * 0.15);
+        totalTaxCredit += eduCredit;
+        totalTaxCredit += marriage ? 50 : 0;
+
+        /* --- 4. 결정세액 및 최종 환급금 산출 --- */
+        let determinedTax = calcTax - totalTaxCredit; 
+        if (determinedTax < 0) determinedTax = 0; 
+        let refundTax = prepaid - determinedTax;
+        let finalRefund = refundTax + (refundTax * 0.1);
+
+        /* --- 5. 최종 화면 및 가이드 출력 --- */
+        let finalHtml = `<div class="result-title">🧾 2026 연말정산 최종 결과</div>`;
+        
+        finalHtml += `
+            <div class="item-row"><span>올해 미리 납부한 세금 (기납부)</span> <span>${Math.floor(prepaid)}만 원</span></div>
+            <div class="item-row"><span>실제 납부해야 할 세금 (결정세액)</span> <span>${Math.floor(determinedTax)}만 원</span></div>
+        `;
+
+        if (prepaid === 0) {
+            finalHtml += `<div class="final-row pay"><span>⚠️ 입력 필요</span><span style="font-size:1rem;">기납부세액을 입력해야 환급액을 알 수 있습니다.</span></div>`;
+        } else if (finalRefund > 0) {
+            finalHtml += `<div class="final-row refund"><span>🎉 예상 환급금 (지방세 포함)</span><span>+ ${Math.floor(finalRefund)}만 원 돌려받습니다!</span></div>`;
+        } else if (finalRefund < 0) {
+            finalHtml += `<div class="final-row pay"><span>💸 추가 납부액 (지방세 포함)</span><span>- ${Math.abs(Math.floor(finalRefund))}만 원 토해냅니다.</span></div>`;
+        } else {
+            finalHtml += `<div class="final-row" style="background-color:#ecf0f1;"><span>⚖️ 추가 납부/환급 없음</span><span>0만 원</span></div>`;
+        }
+
+        finalHtml += `
+            <div class="result-title" style="margin-top:25px;">📋 항목별 한도 및 추가 필요액 분석</div>
+            <table>
+                <tr><th style="width: 23%;">항목</th><th style="width: 25%;">현재 공제액</th><th style="width: 26%;">최대 공제액 한도</th><th style="width: 26%;">한도까지 남은 금액</th></tr>
+                ${tableRows}
+            </table>
+            
+            <div class="guide-box">
+                <div class="guide-title">💡 연말정산 필수 개념 가이드</div>
+                <p><strong style="color:#2c3e50;">1. 소득공제 (과세표준 축소)</strong><br>
+                세금을 매기는 기준이 되는 '소득 금액' 자체를 깎아주는 단계입니다. 소득 구간이 높아 높은 누진세율(최대 45%)을 적용받는 분일수록 절세 효과가 큽니다.<br>
+                • <strong>신용카드 등:</strong> 기본 한도 200~300만 원 (전통시장/대중교통/문화비 결제 시 최대 300만 원 <strong>추가 한도</strong> 부여)<br>
+                • <strong>주택청약 납입:</strong> 납입액 연 300만 원까지 (최대 120만 원 소득에서 차감)<br>
+                • <strong>인적공제:</strong> 부양가족 1인당 150만 원 (최대 한도 없음)</p>
+
+                <p style="margin-top: 15px;"><strong style="color:#2c3e50;">2. 세액공제 (산출세액 직접 차감)</strong><br>
+                계산된 세금에서 특정 금액을 '직접' 빼주는 단계입니다. 소득 크기와 상관없이 지출액에 비례하여 동일한 금액을 현금처럼 돌려받습니다.<br>
+                • <strong>연금계좌 (저축+IRP):</strong> 납입액 연 900만 원 한도 (최대 135만~148.5만 원 환급)<br>
+                • <strong>월세액:</strong> 연 1,000만 원 한도 (최대 150만~170만 원 환급)<br>
+                • <strong>의료비:</strong> 총급여의 3% 초과분부터 연 700만 원 한도 (난임 시술비 등은 한도 없음)<br>
+                • <strong>교육비:</strong> 초중고 인당 300만 원, 대학생 인당 900만 원 한도<br>
+                • <strong>보장성 보험료:</strong> 연 100만 원 한도 (최대 12만 원 환급)</p>
+            </div>
+        `;
+        document.getElementById('resultArea').innerHTML = finalHtml;
+        document.getElementById('resultArea').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
